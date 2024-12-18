@@ -1,0 +1,14 @@
+name: quiz-creator
+
+services:
+  web-app:
+    build:
+      context: ./../
+      dockerfile: ./dockerfiles/next.dockerfile
+    volumes:
+      - type: bind
+        source: ./..
+        target: /app
+    ports:
+      - "127.0.0.1:3000:3000"
+    command: "npm run dev"
