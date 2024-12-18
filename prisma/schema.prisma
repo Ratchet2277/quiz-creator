@@ -9,6 +9,71 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum Language {
+  FR
+  EN
+}
+
+enum MediaType {
+  AUDIO
+  IMAGE
+  VIDEO
+}
+
+enum AwnserType {
+  QCM
+  FREE_TEXT
+}
+
+model I18n {
+  id       String     @id
+  lang     Language
+  text     String
+  Question Question[] @ignore
+  Awnser   Awnser[]   @ignore
+}
+
+model User {
+  id       String     @id @default(uuid())
+  email    String     @unique
+  name     String
+  Question Question[]
+}
+
+model Quiz {
+  id   String @id @default(uuid())
+  name String
+}
+
+model Question {
+  id         String     @id @default(uuid())
+  awnserType AwnserType
+  owner      User       @relation(fields: [userId], references: [id])
+  text       I18n       @relation(fields: [i18nId], references: [id])
+  i18nId String
+  mediaUrl Media  @relation(fields: [mediaId], references: [id])
+  userId   String
+  mediaId  String
+}
+
+model Awnser {
+  id      String @id @default(uuid())
+  order   Int
+  text    I18n   @relation(fields: [i18nId], references: [id])
+  media   Media  @relation(fields: [mediaId], references: [id])
+  i18nId  String
+  mediaId String
+}
+
+model Media {
+  id       String     @id @default(uuid())
+  url      String
+  type     MediaType
+  Question Question[] @ignore
+  Awnser   Awnser[]
 }
