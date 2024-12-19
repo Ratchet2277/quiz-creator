@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,6 +6,57 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  passwordSalt String
+  Question     Question[]
+  Quiz         Quiz[]
+}
+
+model Quiz {
+  id       String     @id @default(uuid())
+  name     String
+  lang     Language
+  userId   String
+  Question Question[]
+  owner    User       @relation(fields: [userId], references: [id])
+}
+
+model Question {
+  id         String     @id @default(uuid())
+  userId     String?
+  mediaId    String?
+  answerType AnswerType
+  quizId     String
+  text       String
+  Answer     Answer[]
+  media      Media?     @relation(fields: [mediaId], references: [id])
+  quiz       Quiz       @relation(fields: [quizId], references: [id])
+  User       User?      @relation(fields: [userId], references: [id])
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  order      Int
+  text       String
+  mediaId    String?
+  questionId String
+  isTrue     Boolean  @default(false)
+  media      Media?   @relation(fields: [mediaId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
+}
+
+model Media {
+  id       String     @id @default(uuid())
+  url      String
+  type     MediaType
+  Awnser   Answer[]
+  Question Question[]
 }
 
 enum Language {
@@ -25,55 +70,8 @@ enum MediaType {
   VIDEO
 }
 
-enum AwnserType {
-  QCM
+enum AnswerType {
+  MULTIPLE_CHOICE
+  MULTIPLE_CHOICE_UNIQUE
   FREE_TEXT
-}
-
-model I18n {
-  id       String     @id
-  lang     Language
-  text     String
-  Question Question[] @ignore
-  Awnser   Awnser[]   @ignore
-}
-
-model User {
-  id       String     @id @default(uuid())
-  email    String     @unique
-  name     String
-  Question Question[]
-}
-
-model Quiz {
-  id   String @id @default(uuid())
-  name String
-}
-
-model Question {
-  id         String     @id @default(uuid())
-  awnserType AwnserType
-  owner      User       @relation(fields: [userId], references: [id])
-  text       I18n       @relation(fields: [i18nId], references: [id])
-  i18nId String
-  mediaUrl Media  @relation(fields: [mediaId], references: [id])
-  userId   String
-  mediaId  String
-}
-
-model Awnser {
-  id      String @id @default(uuid())
-  order   Int
-  text    I18n   @relation(fields: [i18nId], references: [id])
-  media   Media  @relation(fields: [mediaId], references: [id])
-  i18nId  String
-  mediaId String
-}
-
-model Media {
-  id       String     @id @default(uuid())
-  url      String
-  type     MediaType
-  Question Question[] @ignore
-  Awnser   Awnser[]
 }
